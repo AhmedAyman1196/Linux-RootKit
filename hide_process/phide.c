@@ -1,11 +1,12 @@
 // src https://yassine.tioual.com/index.php/2017/01/10/hiding-processes-for-fun-and-profit/
 
-#include <linux/init.h>
-#include <linux/kernel.h>
-#include <linux/module.h>
 #include <linux/fs.h>
 #include <linux/namei.h>
 #include <linux/proc_fs.h>
+// kernel imports
+#include <linux/init.h>
+#include <linux/kernel.h>
+#include <linux/module.h>
 
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("CSEN1001");
