@@ -16,7 +16,7 @@ module_init(mhide_init);
 module_exit(mhide_exit);
 
 // #################################
-// Helpers                         #
+// Main Functions                  #
 // #################################
 
 static int __init mhide_init(void)
@@ -31,10 +31,6 @@ static int __init mhide_init(void)
 
     return 0;
 }
-
-// #################################
-// Main Functions                  #
-// #################################
 
 static void __exit mhide_exit(void)
 {
