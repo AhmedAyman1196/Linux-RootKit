@@ -1,4 +1,4 @@
-// http://derekmolloy.ie/writing-a-linux-kernel-module-part-1-introduction/ aquired from here 
+// src: http://derekmolloy.ie/writing-a-linux-kernel-module-part-1-introduction/
 
 /**
  * @file    hello.c
@@ -40,12 +40,6 @@ static int __init helloBBB_init(void){
    printk(KERN_INFO "EBB: Hello %s from the BBB LKM!\n", name);
    return 0;
 }
-// The printk() is very similar in usage to the printf() function that you should be familiar with,
-// and you can call it from anywhere within the kernel module code. The only significant difference 
-//is that you should specify a log level when you call the function. The log levels are defined in 
-//linux/kern_levels.h as one of KERN_EMERG, KERN_ALERT, KERN_CRIT, KERN_ERR, KERN_WARNING, KERN_NOTICE,
-// KERN_INFO, KERN_DEBUG, and KERN_DEFAULT.
-// This header is included via the linux/kernel.h header file, which includes it via linux/printk.h.
 
 /** @brief The LKM cleanup function
  *  Similar to the initialization function, it is static. The __exit macro notifies that if this
